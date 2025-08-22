@@ -97,3 +97,51 @@ export interface Order {
   createdAt: string;
   notes?: string;
 }
+
+// User Type
+export interface User {
+  _id: string;
+  email: string;
+  fullName: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+  role: 'customer' | 'admin';
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLogin?: string;
+}
+
+// Auth Types
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  image?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  fullName: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    country?: string;
+  };
+}

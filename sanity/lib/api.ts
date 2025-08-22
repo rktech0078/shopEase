@@ -7,6 +7,8 @@ import { Product, Category, Banner, Order, OrderItem } from '../../types';
 // Function to create a new order in Sanity
 export async function createOrder(orderData: Order): Promise<Order> {
   try {
+    console.log('Creating order with data:', orderData);
+    
     // Generate a unique order ID if not provided
     if (!orderData.orderId) {
       orderData.orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -17,6 +19,21 @@ export async function createOrder(orderData: Order): Promise<Order> {
       orderData.createdAt = new Date().toISOString();
     }
     
+    // Ensure proper status values
+    if (!orderData.status) {
+      orderData.status = 'pending';
+    }
+    if (!orderData.paymentStatus) {
+      orderData.paymentStatus = 'pending';
+    }
+    
+    console.log('Sanity client config:', {
+      projectId: client.config().projectId,
+      dataset: client.config().dataset,
+      apiVersion: client.config().apiVersion,
+      hasToken: !!client.config().token
+    });
+    
     // Create the order document in Sanity
     const result = await client.create({
       _type: 'order',
@@ -24,17 +41,23 @@ export async function createOrder(orderData: Order): Promise<Order> {
       customer: orderData.customer,
       items: orderData.items,
       totalAmount: orderData.totalAmount,
-      status: orderData.status || 'pending',
+      status: orderData.status,
       paymentMethod: orderData.paymentMethod,
-      paymentStatus: orderData.paymentStatus || 'pending',
+      paymentStatus: orderData.paymentStatus,
       createdAt: orderData.createdAt,
       notes: orderData.notes || ''
     });
     
+    console.log('Order created successfully in Sanity:', result);
     return { ...orderData, _id: result._id, _createdAt: result._createdAt };
   } catch (error) {
-    console.error('Error creating order:', error);
-    throw new Error('Failed to create order');
+    console.error('Error creating order in Sanity:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      orderData: orderData
+    });
+    throw new Error(`Failed to create order: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -60,6 +83,34 @@ export async function getOrders(): Promise<Order[]> {
   } catch (error) {
     console.error('Error fetching orders:', error);
     throw new Error('Failed to fetch orders');
+  }
+}
+
+// Function to get a single order by ID
+export async function getOrderById(orderId: string): Promise<Order> {
+  const query = groq`*[_type == "order" && _id == $orderId][0] {
+    _id,
+    _createdAt,
+    orderId,
+    customer,
+    items,
+    totalAmount,
+    status,
+    paymentMethod,
+    paymentStatus,
+    createdAt,
+    notes
+  }`;
+  
+  try {
+    const order = await client.fetch<Order>(query, { orderId });
+    if (!order) {
+      throw new Error('Order not found');
+    }
+    return order;
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    throw new Error('Failed to fetch order');
   }
 }
 const fetchWithErrorHandling = async <T>(query: string, params = {}): Promise<T> => {

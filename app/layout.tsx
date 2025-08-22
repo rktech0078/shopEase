@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { CartProvider } from "@/context/CartContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { NextAuthProvider } from "@/components/NextAuthProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -61,11 +63,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CartProvider>
-          <Navbar />
-          <main className="pt-16 min-h-screen">{children}</main>
-          <Footer />
-        </CartProvider>
+        <NextAuthProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Navbar />
+              <main className="pt-16 min-h-screen">{children}</main>
+              <Footer />
+            </CartProvider>
+          </AuthProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

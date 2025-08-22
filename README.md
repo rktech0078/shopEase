@@ -11,19 +11,29 @@ A modern e-commerce application built with Next.js 14, Tailwind CSS, and Sanity 
 - Add products to cart
 - Checkout process with shipping and payment information
 - Order confirmation and tracking
+- **User Authentication & Account Management**
+  - Secure user registration and login
+  - Personal dashboard with order history
+  - Profile management and address updates
+  - Password-protected account access
 
 ### Admin Features
 - Secure admin dashboard
 - View and manage all orders
 - Update order status and payment status
 - View detailed order information
+- **User Management**
+  - View all registered users
+  - Manage user roles and permissions
 
 ## Technical Stack
 
 - **Frontend**: Next.js 14, React, Tailwind CSS
 - **Backend/CMS**: Sanity.io
 - **State Management**: React Context API
-- **Authentication**: Simple authentication for admin dashboard
+- **Authentication**: NextAuth.js with Sanity adapter
+- **Security**: bcryptjs for password hashing, JWT tokens
+- **Database**: Sanity.io (Headless CMS)
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
@@ -44,8 +54,14 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
    yarn install
    ```
 3. Set up environment variables:
-   - Copy `.env.local.example` to `.env.local`
-   - Update the admin credentials
+   - Create `.env.local` file with the following variables:
+   ```bash
+   NEXTAUTH_SECRET=your-super-secret-key-here
+   NEXTAUTH_URL=http://localhost:3000
+   NEXT_PUBLIC_SANITY_PROJECT_ID=your-sanity-project-id
+   NEXT_PUBLIC_SANITY_DATASET=production
+   SANITY_API_TOKEN=your-sanity-api-token
+   ```
 
 4. Run the development server:
    ```bash
@@ -56,9 +72,20 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
+## User Dashboard
+
+Access your personal dashboard at [http://localhost:3000/dashboard](http://localhost:3000/dashboard) after signing in.
+
 ## Admin Dashboard
 
-Access the admin dashboard at [http://localhost:3000/admin](http://localhost:3000/admin) using the credentials specified in your `.env.local` file.
+Access the admin dashboard at [http://localhost:3000/admin](http://localhost:3000/admin) using admin credentials.
+
+## Authentication
+
+The application includes a complete authentication system:
+- **Sign Up**: `/auth/signup` - Create a new account
+- **Sign In**: `/auth/signin` - Login to existing account
+- **Dashboard**: `/dashboard` - User profile and order management
 
 ## Sanity Studio
 
