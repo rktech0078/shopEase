@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, AlertCircle, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function SignInPage() {
@@ -13,6 +13,7 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
+  const [formMessage, setFormMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null)
 
   const { login } = useAuth()
   const router = useRouter()
@@ -36,27 +37,30 @@ export default function SignInPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) return
 
     setIsLoading(true)
-    
+    setFormMessage(null)
+
     try {
       const result = await login(email, password)
-      
+
       if (result.success) {
         toast.success('Welcome back!')
-        router.push('/')
+        setFormMessage({ type: 'success', text: 'Login successful! Redirecting...' })
+        setTimeout(() => router.push('/'), 1000)
       } else {
         toast.error(result.error || 'Login failed')
+        setFormMessage({ type: 'error', text: result.error || 'Invalid email or password' })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error)
-      if (error.message) {
-        toast.error(error.message)
-      } else {
-        toast.error('Something went wrong')
-      }
+      const msg = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' 
+        ? error.message 
+        : 'Something went wrong'
+      toast.error(msg)
+      setFormMessage({ type: 'error', text: msg })
     } finally {
       setIsLoading(false)
     }
@@ -74,6 +78,23 @@ export default function SignInPage() {
         {/* Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Global Success / Error Message */}
+            {formMessage && (
+              <div
+                className={`flex items-center p-3 rounded-lg text-sm font-medium ${formMessage.type === 'error'
+                    ? 'bg-red-50 text-red-700 border border-red-200'
+                    : 'bg-green-50 text-green-700 border border-green-200'
+                  }`}
+              >
+                {formMessage.type === 'error' ? (
+                  <AlertCircle className="h-5 w-5 mr-2" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 mr-2" />
+                )}
+                {formMessage.text}
+              </div>
+            )}
+
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -86,9 +107,8 @@ export default function SignInPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your email"
                 />
               </div>
@@ -112,9 +132,8 @@ export default function SignInPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                    }`}
                   placeholder="Enter your password"
                 />
                 <button

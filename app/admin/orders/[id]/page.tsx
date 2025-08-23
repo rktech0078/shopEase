@@ -116,14 +116,12 @@ const StatusUpdateModal = ({
   isOpen, 
   onClose, 
   currentStatus, 
-  onStatusUpdate, 
-  orderId 
+  onStatusUpdate
 }: {
   isOpen: boolean;
   onClose: () => void;
   currentStatus: string;
   onStatusUpdate: (status: string, notes: string) => void;
-  orderId: string;
 }) => {
   const [status, setStatus] = useState(currentStatus);
   const [notes, setNotes] = useState('');
@@ -274,7 +272,7 @@ export default function OrderDetailsPage() {
       
       if (result.success) {
         // Update local state
-        setOrder(prev => prev ? { ...prev, status, notes } : null);
+        setOrder(prev => prev ? { ...prev, status: status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled', notes } : null);
         toast.success(`Order status updated to ${status}`);
         
         // Show email notification
@@ -376,7 +374,7 @@ export default function OrderDetailsPage() {
                       <p className="text-sm text-gray-600 dark:text-gray-400">
                         Quantity: {item.quantity} × {formatPrice(item.price)}
                       </p>
-                      {item.discount > 0 && (
+                      {item.discount && item.discount > 0 && (
                         <p className="text-sm text-green-600 dark:text-green-400">
                           Discount: {item.discount}% off
                         </p>
@@ -574,13 +572,12 @@ export default function OrderDetailsPage() {
       </div>
 
       {/* Status Update Modal */}
-      <StatusUpdateModal
-        isOpen={showStatusModal}
-        onClose={() => setShowStatusModal(false)}
-        currentStatus={order.status}
-        onStatusUpdate={handleStatusUpdate}
-        orderId={order._id!}
-      />
+             <StatusUpdateModal
+         isOpen={showStatusModal}
+         onClose={() => setShowStatusModal(false)}
+         currentStatus={order.status}
+         onStatusUpdate={handleStatusUpdate}
+       />
     </div>
   );
 }

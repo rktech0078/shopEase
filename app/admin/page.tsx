@@ -342,9 +342,9 @@ export default function AdminDashboard() {
       console.log('Orders fetched successfully:', data);
       setOrders(data);
       setError('');
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch orders';
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch orders';
       setError(`Error: ${errorMessage}`);
       toast.error('Failed to fetch orders. Please check your Sanity configuration.');
     } finally {

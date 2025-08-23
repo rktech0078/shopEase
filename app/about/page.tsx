@@ -157,7 +157,7 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-4xl text-center animate-fade-in">
           <h2 className="text-2xl md:text-3xl font-bold mb-6 text-white">Get in Touch</h2>
           <p className="text-white/90 mb-8 max-w-2xl mx-auto">
-            Have questions or feedback? We'd love to hear from you. Our customer support team is always ready to help.
+            Have questions or feedback? We&apos;d love to hear from you. Our customer support team is always ready to help.
           </p>
           <a 
             href="mailto:contact@shopease.com" 

@@ -36,15 +36,15 @@ export default function SignUpPage() {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev],
+          ...(prev[parent as keyof typeof prev] as any),
           [child]: value
         }
       }))
     } else {
       setFormData(prev => ({ ...prev, [field]: value }))
     }
-    
-    // Clear error when user starts typing
+
+    // Clear error on typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
@@ -81,11 +81,14 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (!validateForm()) return
+
+    if (!validateForm()) {
+      toast.error('Please fix the errors and try again.')
+      return
+    }
 
     setIsLoading(true)
-    
+
     try {
       const result = await register({
         email: formData.email,
@@ -94,39 +97,40 @@ export default function SignUpPage() {
         phone: formData.phone,
         address: formData.address
       })
-      
+
       if (result.success) {
-        toast.success('Account created successfully! Please sign in.')
+        toast.success('🎉 Account created successfully! Please sign in.')
         router.push('/auth/signin')
       } else {
         toast.error(result.error || 'Registration failed')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Registration error:', error)
-      if (error.message) {
-        toast.error(error.message)
-      } else {
-        toast.error('Something went wrong')
-      }
+      const msg = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' 
+        ? error.message 
+        : 'Something went wrong'
+      toast.error(msg)
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-3xl space-y-8">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join ShopEase and start shopping today</p>
+        <div className="text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Create Your Account</h1>
+          <p className="text-gray-600">Join <span className="font-semibold text-blue-600">ShopEase</span> and start shopping today 🚀</p>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Personal Information */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 border border-gray-100">
+          <form onSubmit={handleSubmit} className="space-y-8">
+
+            {/* Personal Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Full Name */}
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
                   Full Name *
@@ -138,20 +142,19 @@ export default function SignUpPage() {
                     type="text"
                     value={formData.fullName}
                     onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.fullName ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter your full name"
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.fullName ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="John Doe"
                   />
                 </div>
                 {errors.fullName && (
-                  <div className="flex items-center mt-2 text-sm text-red-600">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.fullName}
-                  </div>
+                  <p className="flex items-center mt-2 text-sm text-red-600">
+                    <AlertCircle className="h-4 w-4 mr-1" /> {errors.fullName}
+                  </p>
                 )}
               </div>
 
+              {/* Phone */}
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                   Phone Number
@@ -163,15 +166,16 @@ export default function SignUpPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter phone number"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    placeholder="+92 300 1234567"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Email and Password */}
+            {/* Email + Password */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                   Email Address *
@@ -183,20 +187,19 @@ export default function SignUpPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter your email"
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.email ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="you@example.com"
                   />
                 </div>
                 {errors.email && (
-                  <div className="flex items-center mt-2 text-sm text-red-600">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.email}
-                  </div>
+                  <p className="flex items-center mt-2 text-sm text-red-600">
+                    <AlertCircle className="h-4 w-4 mr-1" /> {errors.email}
+                  </p>
                 )}
               </div>
 
+              {/* Password */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                   Password *
@@ -208,24 +211,22 @@ export default function SignUpPage() {
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Create a password"
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                      }`}
+                    placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <div className="flex items-center mt-2 text-sm text-red-600">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    {errors.password}
-                  </div>
+                  <p className="flex items-center mt-2 text-sm text-red-600">
+                    <AlertCircle className="h-4 w-4 mr-1" /> {errors.password}
+                  </p>
                 )}
               </div>
             </div>
@@ -242,90 +243,46 @@ export default function SignUpPage() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                    errors.confirmPassword ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Confirm your password"
+                  className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${errors.confirmPassword ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                    }`}
+                  placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <div className="flex items-center mt-2 text-sm text-red-600">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  {errors.confirmPassword}
-                </div>
+                <p className="flex items-center mt-2 text-sm text-red-600">
+                  <AlertCircle className="h-4 w-4 mr-1" /> {errors.confirmPassword}
+                </p>
               )}
             </div>
 
-            {/* Address Fields */}
+            {/* Address */}
             <div className="border-t pt-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                <MapPin className="h-5 w-5 mr-2 text-blue-600" />
-                Address Information
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-4">
+                <MapPin className="h-5 w-5 text-blue-600 mr-2" /> Address Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-2">
-                    Street Address
-                  </label>
-                  <input
-                    id="street"
-                    type="text"
-                    value={formData.address.street}
-                    onChange={(e) => handleInputChange('address.street', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter street address"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                    City
-                  </label>
-                  <input
-                    id="city"
-                    type="text"
-                    value={formData.address.city}
-                    onChange={(e) => handleInputChange('address.city', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter city"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
-                    State/Province
-                  </label>
-                  <input
-                    id="state"
-                    type="text"
-                    value={formData.address.state}
-                    onChange={(e) => handleInputChange('address.state', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter state"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="zipCode" className="block text-sm font-medium text-gray-700 mb-2">
-                    ZIP/Postal Code
-                  </label>
-                  <input
-                    id="zipCode"
-                    type="text"
-                    value={formData.address.zipCode}
-                    onChange={(e) => handleInputChange('address.zipCode', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter ZIP code"
-                  />
-                </div>
-
+                {['street', 'city', 'state', 'zipCode'].map((field, i) => (
+                  <div key={i}>
+                    <label htmlFor={field} className="block text-sm font-medium text-gray-700 mb-2 capitalize">
+                      {field.replace(/([A-Z])/g, ' $1')}
+                    </label>
+                    <input
+                      id={field}
+                      type="text"
+                      value={formData.address[field as keyof typeof formData.address]}
+                      onChange={(e) => handleInputChange(`address.${field}`, e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder={`Enter ${field}`}
+                    />
+                  </div>
+                ))}
                 <div className="md:col-span-2">
                   <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
                     Country
@@ -335,18 +292,18 @@ export default function SignUpPage() {
                     type="text"
                     value={formData.address.country}
                     onChange={(e) => handleInputChange('address.country', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     placeholder="Enter country"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {isLoading ? (
                 <div className="flex items-center justify-center">
@@ -361,24 +318,18 @@ export default function SignUpPage() {
 
           {/* Links */}
           <div className="mt-6 text-center">
-            <div className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link
-                href="/auth/signin"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-              >
+              <Link href="/auth/signin" className="text-blue-600 hover:text-blue-700 font-semibold">
                 Sign in
               </Link>
-            </div>
+            </p>
           </div>
         </div>
 
-        {/* Back to Home */}
-        <div className="text-center mt-6">
-          <Link
-            href="/"
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
+        {/* Back Home */}
+        <div className="text-center">
+          <Link href="/" className="text-sm text-gray-500 hover:text-gray-700">
             ← Back to ShopEase
           </Link>
         </div>

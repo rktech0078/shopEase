@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Remove sensitive data
-    const { password, verificationToken, resetPasswordToken, resetPasswordExpires, ...userProfile } = user
+    const { password: _, verificationToken: __, resetPasswordToken: ___, resetPasswordExpires: ____, ...userProfile } = user
 
     return NextResponse.json({ user: userProfile })
 
@@ -61,7 +61,7 @@ export async function PUT(request: NextRequest) {
     }).commit()
 
     // Remove sensitive data
-    const { password, verificationToken, resetPasswordToken, resetPasswordExpires, ...userProfile } = updatedUser
+    const { password: _, verificationToken: __, resetPasswordToken: ___, resetPasswordExpires: ____, ...userProfile } = updatedUser
 
     return NextResponse.json({ 
       message: 'Profile updated successfully',

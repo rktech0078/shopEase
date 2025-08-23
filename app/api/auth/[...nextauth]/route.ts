@@ -47,13 +47,15 @@ const handler = NextAuth({
             role: user.role,
             image: null
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Auth error:', error)
           
           // Handle specific Sanity errors
-          if (error.message?.includes('Insufficient permissions')) {
-            console.error('Sanity permissions error:', error)
-            return null
+          if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
+            if (error.message.includes('Insufficient permissions')) {
+              console.error('Sanity permissions error:', error)
+              return null
+            }
           }
           
           return null
@@ -66,14 +68,14 @@ const handler = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
         token.role = user.role
         token.id = user.id
       }
       return token
     },
-    async session({ session, token }: any) {
+    async session({ session, token }: { session: any; token: any }) {
       if (token && session.user) {
         (session.user as any).role = token?.role ?? 'customer';
         (session.user as any).id = token?.id ?? '';
